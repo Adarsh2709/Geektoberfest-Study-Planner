@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -10,11 +11,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CheckCircle2, Clock, Flame, TrendingUp } from "lucide-react";
+import { CheckCircle2, Clock, Download, Flame, Loader2, TrendingUp } from "lucide-react";
 import { formatMinutes } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/toast";
 
 function MinutesTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -38,13 +43,151 @@ const axisProps = {
 
 export function ProgressCharts({ data }) {
   const { daily, weekly, subjects, stats } = data;
+  const toast = useToast();
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (fromDate && toDate && fromDate > toDate) {
+      toast({
+        title: "Invalid date range",
+        description: "From date must be before or equal to To date",
+        variant: "error",
+      });
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (fromDate) params.set("from", fromDate);
+      if (toDate) params.set("to", toDate);
+      const url = params.toString() ? `/api/sessions/export?${params.toString()}` : "/api/sessions/export";
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        let errorMsg = `Export failed (${res.status})`;
+        try {
+          const json = await res.json();
+          if (json?.error) errorMsg = json.error;
+        } catch {}
+        toast({ title: "Export failed", description: errorMsg, variant: "error" });
+        return;
+      }
+
+      const text = await res.text();
+      const lines = text.trim().split(/\r?\n/).filter(Boolean);
+      const rowCount = Math.max(0, lines.length - 1);
+
+      const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+
+      const disposition = res.headers.get("content-disposition");
+      let filename = "study-history.csv";
+      if (disposition && disposition.includes("filename=")) {
+        const match = disposition.match(/filename="?([^";]+)"?/);
+        if (match?.[1]) filename = match[1];
+      }
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      if (rowCount === 0) {
+        toast({
+          title: "Export complete",
+          description: "No study sessions found for this date range (downloaded headers only).",
+          variant: "info",
+        });
+      } else {
+        toast({
+          title: "Export successful",
+          description: `Downloaded ${rowCount} study session${rowCount === 1 ? "" : "s"} as CSV.`,
+          variant: "success",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Export failed",
+        description: err.message || "An unexpected error occurred",
+        variant: "error",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Progress</h1>
-        <p className="mt-1 text-sm text-zinc-500">How your studying is actually going.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Progress</h1>
+          <p className="mt-1 text-sm text-zinc-500">How your studying is actually going.</p>
+        </div>
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Export Study History</CardTitle>
+          <CardDescription>Download your study sessions as a CSV file</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="space-y-1 sm:w-44">
+              <Label htmlFor="export-from" className="text-xs text-zinc-500">
+                From date
+              </Label>
+              <Input
+                id="export-from"
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1 sm:w-44">
+              <Label htmlFor="export-to" className="text-xs text-zinc-500">
+                To date
+              </Label>
+              <Input
+                id="export-to"
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExport}
+                disabled={exporting}
+                className="gap-2"
+              >
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                {exporting ? "Exporting..." : "Export CSV"}
+              </Button>
+              {(fromDate || toDate) && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setFromDate("");
+                    setToDate("");
+                  }}
+                  className="text-xs text-zinc-500"
+                >
+                  Clear dates
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={TrendingUp} label="Completion Rate" value={`${stats.completionRate}%`} />
