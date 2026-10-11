@@ -38,6 +38,8 @@ export function SubjectForm({ initial, onSubmit, submitting = false, submitLabel
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Operating Systems"
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? "subject-error" : undefined}
           required
         />
       </div>
@@ -49,6 +51,8 @@ export function SubjectForm({ initial, onSubmit, submitting = false, submitLabel
             type="date"
             value={examDate}
             onChange={(e) => setExamDate(e.target.value)}
+            aria-invalid={error ? "true" : undefined}
+            aria-describedby={error ? "subject-error" : undefined}
             required
           />
         </div>
@@ -68,10 +72,10 @@ export function SubjectForm({ initial, onSubmit, submitting = false, submitLabel
             <button
               key={c}
               type="button"
-              aria-label={`Color ${c}`}
+              aria-label={`Select color ${c}`}
               onClick={() => setColor(c)}
               className={cn(
-                "h-7 w-7 rounded-full border-2 transition-transform hover:scale-110",
+                "h-8 w-8 min-h-[32px] min-w-[32px] rounded-full border-2 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 color === c ? "border-zinc-900" : "border-transparent"
               )}
               style={{ backgroundColor: c }}
@@ -79,7 +83,11 @@ export function SubjectForm({ initial, onSubmit, submitting = false, submitLabel
           ))}
         </div>
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <p id="subject-error" role="alert" aria-live="polite" className="text-sm text-red-600">
+          {error}
+        </p>
+      ) : null}
       <Button type="submit" disabled={submitting} className="w-full">
         {submitting ? <Loader2 className="animate-spin" /> : null}
         {submitLabel}

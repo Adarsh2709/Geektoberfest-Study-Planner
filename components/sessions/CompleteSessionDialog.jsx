@@ -66,9 +66,12 @@ export function CompleteSessionDialog({ session, open, onClose, onChanged }) {
             max={1440}
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
+            aria-describedby="complete-minutes-desc"
             required
           />
-          <p className="text-xs text-zinc-400">This is recorded as your actual study time.</p>
+          <p id="complete-minutes-desc" className="text-xs text-zinc-400">
+            This is recorded as your actual study time.
+          </p>
         </div>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onClose} disabled={busy}>

@@ -41,6 +41,8 @@ export function TopicForm({ initial, onSubmit, submitting = false, submitLabel =
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="CPU Scheduling"
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? "topic-error" : undefined}
           required
         />
       </div>
@@ -80,7 +82,11 @@ export function TopicForm({ initial, onSubmit, submitting = false, submitLabel =
           />
         </div>
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <p id="topic-error" role="alert" aria-live="polite" className="text-sm text-red-600">
+          {error}
+        </p>
+      ) : null}
       <Button type="submit" disabled={submitting} className="w-full">
         {submitting ? <Loader2 className="animate-spin" /> : null}
         {submitLabel}

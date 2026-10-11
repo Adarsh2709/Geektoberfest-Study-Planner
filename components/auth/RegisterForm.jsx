@@ -39,7 +39,15 @@ export function RegisterForm() {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="reg-name">Name</Label>
-        <Input id="reg-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Sai Kumar" required />
+        <Input
+          id="reg-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Sai Kumar"
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? "reg-error" : undefined}
+          required
+        />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="reg-email">Email</Label>
@@ -50,6 +58,8 @@ export function RegisterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? "reg-error" : undefined}
           required
         />
       </div>
@@ -63,6 +73,8 @@ export function RegisterForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="At least 8 characters"
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? "reg-error" : undefined}
           required
         />
       </div>
@@ -74,10 +86,16 @@ export function RegisterForm() {
           autoComplete="new-password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? "reg-error" : undefined}
           required
         />
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <p id="reg-error" role="alert" aria-live="polite" className="text-sm text-red-600">
+          {error}
+        </p>
+      ) : null}
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? <Loader2 className="animate-spin" /> : null}
         Create account
