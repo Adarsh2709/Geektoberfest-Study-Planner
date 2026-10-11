@@ -1,22 +1,131 @@
-# StudyFlow
+# StudyFlow 📚⚡
 
-StudyFlow is a Next.js study planner with account registration, subjects and topics, a weekly planner, study timers, progress summaries, and optional AI syllabus suggestions.
+A modern, full-stack study planning application built with Next.js, React, Tailwind CSS, and MongoDB. StudyFlow helps students organize subjects, plan daily study sessions, track focus time with timers, monitor progress with visual analytics, and get optional AI-assisted syllabus breakdowns.
 
-## Requirements
+---
 
-- Node.js 20.9 or newer
-- npm
-- A MongoDB database (local or hosted)
+## ✨ Features
 
-## Run locally
+- **🔐 User Authentication**: Secure registration and session management powered by JWTs and Jose.
+- **📚 Subjects & Topics**: Organize study material into structured subjects with topics and priority levels.
+- **📅 Weekly Planner**: Calendar-based study planner using UTC dates to assign and manage upcoming study sessions.
+- **⏱️ Study Timers & Focus Tracking**: Built-in stopwatch/timer to log focus hours directly against planned topics.
+- **📊 Progress & Analytics**: Rich progress summaries and interactive charts built with Recharts.
+- **🤖 AI Syllabus Suggestions (Optional)**: Generate syllabus topics and learning roadmap recommendations using OpenAI-compatible APIs.
+- **🎨 Modern Responsive UI**: Sleek, responsive interface built with Tailwind CSS and Lucide icons.
 
-1. Copy `.env.example` to `.env.local`.
-2. Set `MONGODB_URI` to your MongoDB connection string.
-3. Set `AUTH_SECRET` to a long random secret (at least 32 characters).
-4. Optionally set `AI_API_KEY`, `AI_MODEL`, and `AI_BASE_URL` for an OpenAI-compatible chat completions endpoint. AI topic suggestions are optional; the rest of the app works without them.
-5. Run `npm install`, then `npm run dev`.
-6. Open `http://localhost:3000` and create an account.
+---
 
-For a production build, run `npm run build` and then `npm start`.
+## 🛠️ Tech Stack
 
-The app uses UTC calendar dates for planning. A database connection is required for registration and authenticated app features. Do not commit `.env.local` or share production secrets.
+- **Framework**: [Next.js](https://nextjs.org/) (App Router, Server & Client Components)
+- **Frontend**: [React 19](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [Lucide React](https://lucide.dev/)
+- **Charts**: [Recharts](https://recharts.org/)
+- **Backend / Database**: Next.js Route Handlers, [Mongoose](https://mongoosejs.com/), MongoDB
+- **Authentication**: JWT handling via [jose](https://github.com/panva/jose) and password hashing with [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+- **Validation**: [Zod](https://zod.dev/)
+
+---
+
+## 📋 Requirements
+
+- **Node.js**: `20.9.0` or newer
+- **npm**: `10.x` or newer
+- **MongoDB**: A running local MongoDB instance or MongoDB Atlas cluster URI
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/sai-kore/studyflow-nextjs.git
+cd studyflow-nextjs
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` with your configuration:
+
+```env
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/studyflow
+AUTH_SECRET=your_super_secret_jwt_key_at_least_32_characters_long
+
+# Optional: AI Topic Suggestions (OpenAI-compatible)
+AI_API_KEY=your_ai_api_key
+AI_MODEL=gpt-4o-mini
+AI_BASE_URL=https://api.openai.com/v1
+
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+> **Note**: You can generate a secure `AUTH_SECRET` using:
+> ```bash
+> openssl rand -base64 32
+> ```
+
+### 4. Run the development server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to get started.
+
+---
+
+## 📦 Production Build
+
+To build and start the application for production:
+
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 📁 Project Structure
+
+```text
+studyflow-nextjs/
+├── app/
+│   ├── (auth)/             # Login and registration routes
+│   ├── (dashboard)/        # Main app features (Dashboard, Planner, Today, Progress, Subjects, Settings)
+│   ├── api/                # Backend API endpoints (Auth, Subjects, Planner, AI, etc.)
+│   ├── onboarding/         # First-time user onboarding
+│   ├── layout.js           # Root layout
+│   └── page.js             # Landing page
+├── components/             # Reusable UI components & layouts
+├── hooks/                  # Custom React hooks
+├── lib/                    # Database connection, auth helpers, utility functions
+├── models/                 # Mongoose schemas & models (User, Subject, Plan, etc.)
+├── public/                 # Static assets
+├── .env.example            # Sample environment variables
+└── CONTRIBUTION.md         # Contribution guidelines
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please check out our [CONTRIBUTION.md](file:///home/sai/Developement/Geektober-Projects/studyflow-nextjs/CONTRIBUTION.md) for details on our code of conduct, development setup, and pull request workflow.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
