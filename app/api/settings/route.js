@@ -15,6 +15,7 @@ export async function GET() {
         dailyStudyMinutes: prefs.dailyStudyMinutes ?? 120,
         preferredStudyTime: prefs.preferredStudyTime ?? "evening",
         weeklyAvailability: prefs.weeklyAvailability || {},
+        timeZone: prefs.timeZone ?? "UTC",
       },
     },
   });
@@ -44,6 +45,7 @@ export async function PUT(request) {
     if (d.name !== undefined) user.name = d.name;
     if (d.preferredStudyTime !== undefined) user.set("preferences.preferredStudyTime", d.preferredStudyTime);
     if (d.dailyStudyMinutes !== undefined) user.set("preferences.dailyStudyMinutes", d.dailyStudyMinutes);
+    if (d.timeZone !== undefined) user.set("preferences.timeZone", d.timeZone);
     if (d.weeklyAvailability !== undefined) {
       const weekly = {};
       for (let day = 0; day <= 6; day++) {

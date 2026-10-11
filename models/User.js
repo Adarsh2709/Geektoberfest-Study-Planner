@@ -10,6 +10,7 @@ const userSchema = new Schema({
     dailyStudyMinutes: { type: Number, default: 120, min: 0, max: 1440 },
     preferredStudyTime: { type: String, enum: ["morning", "afternoon", "evening", "night"], default: "evening" },
     weeklyAvailability: { type: Schema.Types.Mixed, default: {} },
+    timeZone: { type: String, default: "UTC", trim: true },
   },
   onboarded: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },

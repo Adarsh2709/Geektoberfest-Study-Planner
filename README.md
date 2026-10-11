@@ -120,6 +120,28 @@ studyflow-nextjs/
 
 ---
 
+## 🌍 Time Zones
+
+StudyFlow stores every timestamp in **UTC** and treats the user's time zone as a
+display/bucketing concern applied when deriving calendar days.
+
+- Each user has an IANA time zone in `preferences.timeZone` (default `UTC`),
+  editable on the **Settings** page.
+- `dayKey(date, timeZone)` / `todayKey(timeZone)` / `startOfToday(timeZone)` in
+  [`lib/utils.js`](lib/utils.js) resolve the calendar day in that zone (via
+  `Intl`); omitting the zone falls back to UTC. "Today", daily sessions, streaks,
+  weekly planning and progress all pivot on the user's local day.
+- Day-level arithmetic uses canonical UTC-midnight **anchors** that are exactly
+  24h apart, so it stays correct across daylight-saving transitions.
+- **Exam dates** are stored and read as plain `YYYY-MM-DD` calendar dates, so
+  they never shift a day when the zone changes.
+- Changing the zone requires no data migration — days are derived at read time
+  and the default (`UTC`) reproduces the previous behaviour.
+
+Run the date/zone unit tests with `npm test`.
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please check out our [CONTRIBUTION.md](file:///home/sai/Developement/Geektober-Projects/studyflow-nextjs/CONTRIBUTION.md) for details on our code of conduct, development setup, and pull request workflow.
