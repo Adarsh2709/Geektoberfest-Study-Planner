@@ -1,6 +1,6 @@
 import { getAuthUser } from "@/lib/auth";
 import { getSessionsDetailed, getSubjectsStats } from "@/lib/queries";
-import { dayKey, startOfWeek } from "@/lib/utils";
+import { dayKey, startOfToday, startOfWeek } from "@/lib/utils";
 import { PlannerView } from "@/components/planner/PlannerView";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,8 @@ export const metadata = { title: "Planner" };
 
 export default async function PlannerPage() {
   const user = await getAuthUser();
-  const weekStart = startOfWeek(new Date());
+  const timeZone = user?.preferences?.timeZone || "UTC";
+  const weekStart = startOfWeek(startOfToday(timeZone));
   const weekStartKey = dayKey(weekStart);
   const weekEndKey = dayKey(new Date(weekStart.getTime() + 6 * 86400000));
 

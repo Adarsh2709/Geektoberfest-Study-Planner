@@ -11,13 +11,30 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 
+// Full IANA list where supported, falling back to a small set otherwise.
+function listTimeZones() {
+  try {
+    if (typeof Intl.supportedValuesOf === "function") return Intl.supportedValuesOf("timeZone");
+  } catch {
+    /* ignore */
+  }
+  return ["UTC", "America/New_York", "Europe/London", "Asia/Kolkata", "Asia/Tokyo", "Australia/Sydney"];
+}
+
 export function SettingsForm({ user }) {
   const router = useRouter();
   const toast = useToast();
   const prefs = user.preferences || {};
 
+  const timeZones = (() => {
+    const zones = listTimeZones();
+    const current = prefs.timeZone || "UTC";
+    return zones.includes(current) ? zones : [current, ...zones];
+  })();
+
   const [name, setName] = useState(user.name || "");
   const [preferredStudyTime, setPreferredStudyTime] = useState(prefs.preferredStudyTime || "evening");
+  const [timeZone, setTimeZone] = useState(prefs.timeZone || "UTC");
   const [dailyStudyMinutes, setDailyStudyMinutes] = useState(String(prefs.dailyStudyMinutes ?? 120));
   const [weekly, setWeekly] = useState(() => {
     const initial = {};
@@ -48,6 +65,7 @@ export function SettingsForm({ user }) {
         body: {
           name: name.trim(),
           preferredStudyTime,
+          timeZone,
           dailyStudyMinutes: Math.min(1440, Math.max(0, Number(dailyStudyMinutes) || 120)),
           weeklyAvailability,
         },
@@ -137,6 +155,24 @@ export function SettingsForm({ user }) {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="max-w-sm space-y-1.5">
+              <Label htmlFor="settings-timezone">Time zone</Label>
+              <Select
+                id="settings-timezone"
+                value={timeZone}
+                onChange={(e) => setTimeZone(e.target.value)}
+              >
+                {timeZones.map((tz) => (
+                  <option key={tz} value={tz}>
+                    {tz}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-xs text-zinc-500">
+                Used for today&apos;s sessions, streaks, weekly planning and progress. Exam dates stay fixed calendar dates.
+              </p>
             </div>
 
             <div className="space-y-3">
