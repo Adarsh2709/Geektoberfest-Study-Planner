@@ -16,6 +16,7 @@ export default async function SettingsPage() {
           dailyStudyMinutes: prefs.dailyStudyMinutes ?? 120,
           preferredStudyTime: prefs.preferredStudyTime ?? "evening",
           weeklyAvailability: prefs.weeklyAvailability || {},
+          timeZone: prefs.timeZone ?? "UTC",
         },
       }}
     />

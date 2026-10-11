@@ -12,7 +12,9 @@ export const metadata = { title: "Today's Study" };
 
 export default async function TodayPage() {
   const user = await getAuthUser();
-  const sessions = await getSessionsDetailed(String(user._id), { from: todayKey(), to: todayKey() });
+  const timeZone = user?.preferences?.timeZone || "UTC";
+  const key = todayKey(timeZone);
+  const sessions = await getSessionsDetailed(String(user._id), { from: key, to: key });
 
   const planned = sessions.reduce((n, s) => n + s.plannedMinutes, 0);
   const completed = sessions
@@ -24,7 +26,7 @@ export default async function TodayPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Today&apos;s Study</h1>
-        <p className="mt-1 text-sm text-zinc-500">{formatDate(todayKey())}</p>
+        <p className="mt-1 text-sm text-zinc-500">{formatDate(key)}</p>
       </div>
 
       <Card>

@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user) return unauthorized();
-    const key = todayKey();
+    const key = todayKey(user?.preferences?.timeZone || "UTC");
     const sessions = await getSessionsDetailed(String(user._id), { from: key, to: key });
     return NextResponse.json({ date: key, sessions });
   } catch (err) {

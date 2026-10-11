@@ -4,6 +4,7 @@ import StudySession from "@/models/StudySession";
 import Topic from "@/models/Topic";
 import { getAuthUser, unauthorized } from "@/lib/auth";
 import { topicUpdateSchema } from "@/lib/validation";
+import { startOfToday } from "@/lib/utils";
 
 const ID_RE = /^[0-9a-fA-F]{24}$/;
 
@@ -33,8 +34,7 @@ export async function PATCH(request, { params }) {
 
     // Marking a topic complete removes its future planned sessions.
     if (d.completed === true) {
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
+      const today = startOfToday(user?.preferences?.timeZone || "UTC");
       await StudySession.deleteMany({ userId: user._id, topicId: topic._id, status: "planned", date: { $gte: today } });
     }
 
