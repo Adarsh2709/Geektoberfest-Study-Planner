@@ -15,6 +15,7 @@ import { formatMinutes } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { StudyHistory } from "@/components/progress/StudyHistory";
 
 function MinutesTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -36,7 +37,7 @@ const axisProps = {
   tick: { fontSize: 12, fill: "#71717a" },
 };
 
-export function ProgressCharts({ data }) {
+export function ProgressCharts({ data, topics = [] }) {
   const { daily, weekly, subjects, stats } = data;
 
   return (
@@ -125,6 +126,8 @@ export function ProgressCharts({ data }) {
           )}
         </CardContent>
       </Card>
+
+      <StudyHistory subjects={subjects} topics={topics} />
     </div>
   );
 }
