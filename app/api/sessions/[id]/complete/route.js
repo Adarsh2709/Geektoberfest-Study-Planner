@@ -4,6 +4,7 @@ import StudySession from "@/models/StudySession";
 import Topic from "@/models/Topic";
 import { getAuthUser, unauthorized } from "@/lib/auth";
 import { completeSessionSchema } from "@/lib/validation";
+import { calculateTopicProgress } from "@/lib/utils";
 
 const ID_RE = /^[0-9a-fA-F]{24}$/;
 
@@ -43,24 +44,49 @@ export async function POST(request, { params }) {
     session.actualMinutes = actualMinutes;
     await session.save();
 
-    // Mark the topic completed when all of its estimated work is done.
+    // Mark the topic completed when actual study time meets or exceeds estimated work,
+    // and preserve manually completed topics.
+    let topicCompleted = false;
     if (session.topicId) {
       const topic = await Topic.findOne({ _id: session.topicId, userId: user._id });
-      if (topic && !topic.completed) {
-        const done = await StudySession.find({
-          userId: user._id,
-          topicId: topic._id,
-          status: "completed",
-        }).select("plannedMinutes").lean();
-        const totalDone = done.reduce((n, s) => n + (s.plannedMinutes || 0), 0);
-        if (totalDone >= (topic.estimatedMinutes || 0)) {
-          topic.completed = true;
-          await topic.save();
+      if (topic) {
+        if (topic.completed) {
+          topicCompleted = true;
+        } else {
+          const completedSessions = await StudySession.find({
+            userId: user._id,
+            topicId: topic._id,
+            status: "completed",
+          }).select("actualMinutes plannedMinutes").lean();
+
+          const progress = calculateTopicProgress(
+            completedSessions,
+            topic.estimatedMinutes,
+            topic.completed
+          );
+
+          if (progress.isCompleted) {
+            topic.completed = true;
+            await topic.save();
+            topicCompleted = true;
+
+            // Remove future planned sessions for this topic since it is now completed
+            await StudySession.deleteMany({
+              userId: user._id,
+              topicId: topic._id,
+              status: "planned",
+              date: { $gte: session.date },
+            });
+          }
         }
       }
     }
 
-    return NextResponse.json({ ok: true, actualMinutes: session.actualMinutes });
+    return NextResponse.json({
+      ok: true,
+      actualMinutes: session.actualMinutes,
+      topicCompleted,
+    });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
