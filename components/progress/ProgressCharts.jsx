@@ -41,7 +41,7 @@ const axisProps = {
   tick: { fontSize: 12, fill: "#71717a" },
 };
 
-export function ProgressCharts({ data }) {
+export function ProgressCharts({ data, topics = [] }) {
   const { daily, weekly, subjects, stats } = data;
   const toast = useToast();
   const [fromDate, setFromDate] = useState("");
@@ -268,6 +268,8 @@ export function ProgressCharts({ data }) {
           )}
         </CardContent>
       </Card>
+
+      <StudyHistory subjects={subjects} topics={topics} />
     </div>
   );
 }
