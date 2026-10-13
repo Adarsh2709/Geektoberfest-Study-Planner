@@ -14,23 +14,74 @@ import { useElapsedSeconds } from "@/hooks/useTimer";
 export function TimerDialog({ session, open, onClose, onChanged }) {
   const router = useRouter();
   const toast = useToast();
-  const [running, setRunning] = useState(true);
+  const [running, setRunning] = useState(session.timerState !== "paused");
   const [confirming, setConfirming] = useState(false);
   const [minutes, setMinutes] = useState("45");
   const [busy, setBusy] = useState(false);
   const { elapsed, setElapsed } = useElapsedSeconds({ active: open && running });
 
-  // Initialize elapsed from the server-side startedAt on open (survives reloads).
+  // Initialize elapsed from active intervals (survives reloads and pauses).
   useEffect(() => {
     if (!open) return;
-    const base = session.startedAt
-      ? Math.max(0, Math.floor((Date.now() - new Date(session.startedAt).getTime()) / 1000))
-      : 0;
+    const isPaused = session.timerState === "paused";
+    setRunning(!isPaused);
+
+    let base = session.elapsedActiveSeconds || 0;
+    if (!isPaused && session.lastStartedAt) {
+      base += Math.max(0, Math.floor((Date.now() - new Date(session.lastStartedAt).getTime()) / 1000));
+    } else if (!session.lastStartedAt && !session.elapsedActiveSeconds && session.startedAt) {
+      base = Math.max(0, Math.floor((Date.now() - new Date(session.startedAt).getTime()) / 1000));
+    }
+
     setElapsed(base);
-    setRunning(true);
     setConfirming(false);
     setMinutes(String(Math.min(600, Math.max(1, Math.round(base / 60)))));
-  }, [open, session.id, session.startedAt, setElapsed]);
+  }, [open, session.id, session.startedAt, session.lastStartedAt, session.elapsedActiveSeconds, session.timerState, setElapsed]);
+
+  // Handle multiple tabs safely via window storage events
+  useEffect(() => {
+    if (!open) return;
+    const handleStorage = (e) => {
+      if (e.key === `studyflow_timer_${session.id}` && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          if (data.action === "pause") {
+            setRunning(false);
+            if (data.elapsed != null) setElapsed(data.elapsed);
+          } else if (data.action === "resume") {
+            setRunning(true);
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [open, session.id, setElapsed]);
+
+  const togglePause = async () => {
+    if (busy) return;
+    const action = running ? "pause" : "resume";
+    setBusy(true);
+    try {
+      const res = await api(`/api/sessions/${session.id}/${action}`, { method: "POST" });
+      setRunning(!running);
+      if (action === "pause" && res?.elapsedActiveSeconds != null) {
+        setElapsed(res.elapsedActiveSeconds);
+        setMinutes(String(Math.min(600, Math.max(1, Math.round(res.elapsedActiveSeconds / 60)))));
+      }
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.setItem(
+          `studyflow_timer_${session.id}`,
+          JSON.stringify({ action, elapsed: res?.elapsedActiveSeconds ?? elapsed, timestamp: Date.now() })
+        );
+      }
+      if (onChanged) onChanged();
+    } catch (err) {
+      toast({ title: `Could not ${action} timer`, description: err.message, variant: "error" });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const complete = async () => {
     const value = Math.min(1440, Math.max(0, Number(minutes) || 0));
@@ -81,7 +132,7 @@ export function TimerDialog({ session, open, onClose, onChanged }) {
         <div className="text-5xl font-semibold tabular-nums tracking-tight">{formatClock(elapsed)}</div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setRunning((r) => !r)}>
+          <Button variant="outline" onClick={togglePause} disabled={busy}>
             {running ? <Pause /> : <Play />}
             {running ? "Pause" : "Resume"}
           </Button>

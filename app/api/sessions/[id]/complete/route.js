@@ -32,15 +32,22 @@ export async function POST(request, { params }) {
 
     let actualMinutes = parsed.data.actualMinutes;
     if (actualMinutes == null) {
-      actualMinutes = session.startedAt
-        ? Math.max(1, Math.round((Date.now() - session.startedAt.getTime()) / 60000))
-        : session.plannedMinutes;
+      let activeSeconds = session.elapsedActiveSeconds || 0;
+      if (session.timerState === "running" && session.lastStartedAt) {
+        activeSeconds += Math.max(0, Math.floor((Date.now() - new Date(session.lastStartedAt).getTime()) / 1000));
+      } else if (!session.startedAt && !session.lastStartedAt && !session.elapsedActiveSeconds) {
+        activeSeconds = (session.plannedMinutes || 0) * 60;
+      }
+      actualMinutes = Math.max(1, Math.round(activeSeconds / 60));
     }
     actualMinutes = Math.min(1440, Math.max(0, actualMinutes));
 
     session.status = "completed";
     session.completedAt = new Date();
     session.actualMinutes = actualMinutes;
+    session.timerState = "idle";
+    session.lastStartedAt = null;
+    session.pausedAt = null;
     await session.save();
 
     // Mark the topic completed when all of its estimated work is done.

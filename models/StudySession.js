@@ -15,6 +15,14 @@ const studySessionSchema = new Schema({
     default: "planned",
   },
   startedAt: { type: Date, default: null },
+  lastStartedAt: { type: Date, default: null },
+  pausedAt: { type: Date, default: null },
+  elapsedActiveSeconds: { type: Number, default: 0, min: 0 },
+  timerState: {
+    type: String,
+    enum: ["idle", "running", "paused"],
+    default: "idle",
+  },
   completedAt: { type: Date, default: null },
   // Internal flag: a past unfinished session whose work was already redistributed.
   rescheduled: { type: Boolean, default: false },
