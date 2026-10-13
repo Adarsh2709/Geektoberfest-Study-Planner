@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2, MinusCircle, Play } from "lucide-react";
+import { Calendar, CheckCircle2, Loader2, MinusCircle, Play } from "lucide-react";
 import { api, cn, formatMinutes } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
 import { TimerDialog } from "./TimerDialog";
 import { CompleteSessionDialog } from "./CompleteSessionDialog";
+import { RescheduleDialog } from "./RescheduleDialog";
 
 const STATUS_ICON = {
   planned: <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-zinc-300" />,
@@ -23,6 +24,7 @@ export function SessionCard({ session, compact = false, onChanged }) {
   const toast = useToast();
   const [timerOpen, setTimerOpen] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const refresh = () => {
@@ -96,6 +98,16 @@ export function SessionCard({ session, compact = false, onChanged }) {
                 {busy ? <Loader2 className="animate-spin" /> : <Play />}
                 Start
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setRescheduleOpen(true)}
+                disabled={busy}
+                title="Reschedule session"
+              >
+                <Calendar className="h-3.5 w-3.5" />
+                {!compact && "Reschedule"}
+              </Button>
               {!compact && (
                 <Button size="sm" variant="ghost" onClick={skip} disabled={busy}>
                   Skip
@@ -138,6 +150,12 @@ export function SessionCard({ session, compact = false, onChanged }) {
         session={session}
         open={completeOpen}
         onClose={() => setCompleteOpen(false)}
+        onChanged={refresh}
+      />
+      <RescheduleDialog
+        session={session}
+        open={rescheduleOpen}
+        onClose={() => setRescheduleOpen(false)}
         onChanged={refresh}
       />
     </Card>
