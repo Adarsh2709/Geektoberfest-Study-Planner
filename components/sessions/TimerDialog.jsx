@@ -119,7 +119,7 @@ export function TimerDialog({ session, open, onClose, onChanged }) {
           type="button"
           onClick={skip}
           disabled={busy}
-          className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-600 hover:underline"
+          className="inline-flex min-h-[36px] items-center justify-center rounded-md px-3 py-2 text-xs text-zinc-400 underline-offset-2 transition-colors hover:text-zinc-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         >
           Skip this session instead
         </button>

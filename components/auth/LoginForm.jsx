@@ -45,6 +45,8 @@ export function LoginForm() {
           placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? "login-error" : undefined}
           required
         />
       </div>
@@ -57,10 +59,16 @@ export function LoginForm() {
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? "login-error" : undefined}
           required
         />
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <p id="login-error" role="alert" aria-live="polite" className="text-sm text-red-600">
+          {error}
+        </p>
+      ) : null}
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? <Loader2 className="animate-spin" /> : null}
         Sign in
